@@ -1,6 +1,8 @@
-﻿namespace Service.Service
+﻿using Service.Interface;
+
+namespace Service.Service
 {
-    class StyleService
+    public class StyleService : IStyleService
     {
     }
 }
