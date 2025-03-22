@@ -1,0 +1,6 @@
+@PE_PRN231_SP24_123890_SE172360_BE_HostAddress = http://localhost:5190
+
+GET {{PE_PRN231_SP24_123890_SE172360_BE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
