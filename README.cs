@@ -8,6 +8,12 @@ dotnet add package Microsoft.Extensions.Configuration --version 8.0.0
 dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.0
 dotnet add package  Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.10
 
+//ApiLayer
+dotnet add package Microsoft.AspNetCore.OData --version 8.2.5
+
+//tai package trong Service
+dotnet add package FluentValidation.AspNetCore --version 8.5.1
+
 
 // install offline (Mở file csproj của Repo rồi paste content của tag <ItemGroup> </ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.2.0" />
@@ -25,7 +31,7 @@ dotnet add package  Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.
     < PackageReference Include = "Microsoft.Extensions.Configuration.Json" Version = "8.0.0" />
 
 //DATABASE SCAFFOLD ( tự đổi tên server + database của đề)
-dotnet ef dbcontext scaffold "Server=DEVPHUCTRANN; Database=VaccinaCareDb; User Id=sa; Password=12345; TrustServerCertificate=True; Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer
+dotnet ef dbcontext scaffold "Server=DEVPHUCTRANN; Database=WatercolorsPainting2024DB; User Id=sa; Password=12345; TrustServerCertificate=True; Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer
 
 //BỎ ĐỐNG NÀY VÀO DBCONTEXT 
 public static string GetConnectionString(string connectionStringName)
@@ -41,30 +47,57 @@ public static string GetConnectionString(string connectionStringName)
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseSqlServer(GetConnectionString("DefaultConnection"));
 
-// TRONG appsettings.json SETUP NHƯ SAU (miễn giống với scaffold là được): 
+//// TRONG appsettings.json SETUP NHƯ SAU (miễn giống với scaffold là được): 
 
+{
     "AllowedHosts": "*",
     "ConnectionStrings": {
-        "DefaultConnection": "Server=DEVPHUCTRANN; Database=Fall24PharmaceuticalDB; User Id=sa; Password=12345; TrustServerCertificate=True;Encrypt=False;"
+        "DefaultConnection": "Server=DEVPHUCTRANN; Database=WatercolorsPainting2024DB; User Id=sa; Password=12345; TrustServerCertificate=True;Encrypt=False;"
   },
     "Jwt": {
         "Key": "0ccfeb299b126a479a64630e2d34e9e91e5fcbcaea8ac9e3347e224b0557a53e",
         "Issuer": "https://localhost:7075",
         "Audience": "https://localhost:7075"
   }
+}
 
 
-====================Bước 8===============================
+
+//====================Bước 8===============================
 //PROGRAM.CS
 
 //JSON CYCLE
+static IEdmModel GetEdmModel()
+{
+    var odataBuilder = new ODataConventionModelBuilder();
+    odataBuilder.EntitySet<Style>("Style"); // ENTITY
+    odataBuilder.EntitySet<WatercolorsPainting>("WatercolorsPainting"); // ENTITY
+    return odataBuilder.GetEdmModel();
+}
+
+builder.Services.AddControllers().AddOData(options =>
+{
+    options.Select().Filter().OrderBy().Expand().SetMaxTop(null).Count();
+    options.AddRouteComponents("odata", GetEdmModel());
+});
+
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<WatercolorsPainting2024DbContext>();
+
+builder.Services.AddScoped<IUserAccountService, UserAccountService>();
+builder.Services.AddScoped<UserAccountRepo>();
+builder.Services.AddScoped<WatercolorsPaintingRepo>();
+builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingService>();
+builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
+builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();
+
 builder.Services.AddControllers().AddJsonOptions(option =>
 {
     option.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     option.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
 });
 
-//Authen
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -109,8 +142,7 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
-
-====================Bước 9==============================
+//====================Bước 9==============================
 // Generic Repository/Data Access Object
 #region
 public class DataAccessObject<T> where T : class
@@ -256,26 +288,132 @@ public class DataAccessObject<T> where T : class
         return await _context.SaveChangesAsync();
     }
 }
-#endregion
-
 
 //SAMPLE REPOSITORY
-public class AccountRespository : DataAccessObject<SystemAccount>
-{
-    public AccountRespository(OilPaintingArt2024DbContext context) : base(context) { }
-
-    public SystemAccount GetByEmailAndPassword(string email, string password)
+public class UserAccountRepo : DataAccessObject<UserAccount>
     {
-        return _context.SystemAccounts.FirstOrDefault(a => a.AccountEmail == email && a.AccountPassword == password);
+        public UserAccountRepo(WatercolorsPainting2024DbContext context) : base(context) { }
+
+        public async Task<UserAccount> GetByEmailAndPassword(string email, string password)
+        {
+            return await _context.UserAccounts.FirstOrDefaultAsync(a => a.UserEmail == email && a.UserPassword == password && i);
+        }
+
+
     }
 
+//SAMPLE INTERFACE & SERVICE
+public interface IUserAccountService
+{
+    public Task<UserAccount> Authenticate(string username, string password);
+}
+
+public class UserAccountService : IUserAccountService
+{
+    private readonly UserAccountRepo _repo;
+
+    public UserAccountService(UserAccountRepo repo)
+    {
+        _repo = repo;
+    }
+
+    public async Task<UserAccount> Authenticate(string username, string password)
+    {
+        return await _repo.GetByEmailAndPassword(username, password);
+    }
+}
+
+//SAMPLE CONTROLLER
+[Route("api/[controller]")]
+[ApiController]
+public class UserAccountController : Controller
+{
+    private readonly IConfiguration _configuration;
+    private readonly IUserAccountService _userAccountService;
+
+    public UserAccountController(IConfiguration configuration, IUserAccountService userAccountService)
+    {
+        _configuration = configuration;
+        _userAccountService = userAccountService;
+    }
+
+    [HttpPost("Login")]
+    public IActionResult Login([FromBody] LoginRequest request)
+    {
+        var user = _userAccountService.Authenticate(request.UserName, request.Password);
+
+        if (user == null || user.Result == null)
+            return Unauthorized();
+
+        var token = GenerateJSONWebToken(user.Result);
+
+        return Ok(token);
+    }
+
+    private string GenerateJSONWebToken(UserAccount systemUserAccount)
+    {
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(_configuration["Jwt:Issuer"]
+                , _configuration["Jwt:Audience"]
+                , new Claim[]
+                {
+            new(ClaimTypes.Name, systemUserAccount.UserEmail),
+            new(ClaimTypes.Role, systemUserAccount.Role.ToString()),
+                },
+                expires: DateTime.Now.AddMinutes(120),
+                signingCredentials: credentials
+            );
+
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return tokenString;
+    }
+
+
+    public sealed record LoginRequest(string UserName, string Password);
 }
 
 
+// CRUD entity chính và phụ
+// SAMPLE REPO: 
+public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
+{
+    public WatercolorsPaintingRepo()
+    {
+
+    }
+
+    public async Task<List<WatercolorsPainting>> GetAllAsync()
+    {
+        var items = await _context.WatercolorsPaintings.Include(i => i.Style).ToListAsync();
+        return items;
+    }
+
+    public async Task<WatercolorsPainting> GetByIdAsync(string id)
+    {
+        var item = await _context.WatercolorsPaintings.Include(i => i.Style).FirstOrDefaultAsync(t => t.PaintingId == id);
+        if (item == null)
+        {
+            _context.Entry(item).State = EntityState.Detached;
+        }
+        return item;
+    }
+
+    public async Task<List<WatercolorsPainting>> Search(int? item1, string? item2)
+    {
+        return await _context.WatercolorsPaintings
+            .Include(i => i.Style)
+            .Where(u => (string.IsNullOrEmpty(item2) || u.PaintingAuthor.ToLower().Contains(item2.ToLower()))
+                        && (!item1.HasValue || u.PublishYear == item1.Value))
+            .ToListAsync();
+    }
+}
+
 //SEARCH
-//
 //Search điều kiện And
-public async Task<List<Team>> GetAllPaged(int PageSize, int pageNumber, int? Position, string GroupName)// 1 string, 1 int
+    public async Task<List<Team>> GetAllPaged(int PageSize, int pageNumber, int? Position, string GroupName)// 1 string, 1 int
 {
     return await _context.Teams
         .Include(i => i.Group)
@@ -285,30 +423,213 @@ public async Task<List<Team>> GetAllPaged(int PageSize, int pageNumber, int? Pos
         .Take(PageSize)
         .ToListAsync();
 }
-//Search điều kiện OR
-public async Task<List<OilPaintingArt>> GetAllPaged(int PageSize, int pageNumber, string OilPaintingArtStyle, string Artist) // 2 string
+    //Search điều kiện OR
+    public async Task<List<OilPaintingArt>> GetAllPaged(int PageSize, int pageNumber, string OilPaintingArtStyle, string Artist) // 2 string
+    {
+        return await _context.OilPaintingArts
+            .Include(i => i.Supplier)
+            .Where(u => (string.IsNullOrEmpty(OilPaintingArtStyle) && string.IsNullOrEmpty(Artist))
+                        || (!string.IsNullOrEmpty(OilPaintingArtStyle) && u.OilPaintingArtStyle.ToLower().Contains(OilPaintingArtStyle.ToLower()))
+                        || ((!string.IsNullOrEmpty(Artist) && u.Artist.ToLower().Contains(Artist.ToLower()))))
+            .Skip((pageNumber - 1) * PageSize)
+            .Take(PageSize)
+            .ToListAsync();
+    }
+    public async Task<List<Team>> GetAllPaged(int pageSize, int pageNumber, int? position, string groupName)// 1 string , 1 int
+    {
+        return await _context.Teams
+            .Include(i => i.Group)
+            .Where(u =>
+                (!position.HasValue && string.IsNullOrEmpty(groupName))
+                || (position.HasValue && u.Position == position.Value)
+                || (!string.IsNullOrEmpty(groupName) && u.Group.GroupName.ToLower().Contains(groupName.ToLower())))
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+//SAMPLE SERVICE & INTERFACE
+//interface
+public interface IWatercolorsPaintingService
 {
-    return await _context.OilPaintingArts
-        .Include(i => i.Supplier)
-        .Where(u => (string.IsNullOrEmpty(OilPaintingArtStyle) && string.IsNullOrEmpty(Artist))
-                    || (!string.IsNullOrEmpty(OilPaintingArtStyle) && u.OilPaintingArtStyle.ToLower().Contains(OilPaintingArtStyle.ToLower()))
-                    || ((!string.IsNullOrEmpty(Artist) && u.Artist.ToLower().Contains(Artist.ToLower()))))
-        .Skip((pageNumber - 1) * PageSize)
-        .Take(PageSize)
-        .ToListAsync();
+    Task<List<WatercolorsPainting>> GetAll();
+    Task<WatercolorsPainting> GetById(int id);
+    Task<int> Create(WatercolorsPainting watercolorsPainting);
+    Task<bool> Delete(int id);
+    Task<string> CreateWithValidation(WatercolorsPainting watercolorsPainting);
+    //Task<string> UpdateWithValidation(WatercolorsPainting watercolorsPainting);
 }
-public async Task<List<Team>> GetAllPaged(int pageSize, int pageNumber, int? position, string groupName)// 1 string , 1 int
+
+//validator
+//2)Tạo thư mục Validators trong Service, sau đó tạo file CosmeticInformationValidator.cs.
+
+//3)trong CosmeticInformationValidator.cs.
+public class WatercolorsPaintingValidator : AbstractValidator<WatercolorsPainting>
 {
-    return await _context.Teams
-        .Include(i => i.Group)
-        .Where(u =>
-            (!position.HasValue && string.IsNullOrEmpty(groupName))
-            || (position.HasValue && u.Position == position.Value)
-            || (!string.IsNullOrEmpty(groupName) && u.Group.GroupName.ToLower().Contains(groupName.ToLower())))
-        .Skip((pageNumber - 1) * pageSize)
-        .Take(pageSize)
-        .ToListAsync();
+    public WatercolorsPaintingValidator()
+    {
+        RuleFor(x => x.PaintingName)
+        .NotEmpty().WithMessage("WaterColor is required.")
+        .Length(2, 80).WithMessage("WaterColor must be between 2 and 80 characters.")
+        .Matches(@"^([A-Z][a-z0-9@#]*\s?)+$")
+        .WithMessage("Each word in WaterColor must begin with a capital letter and contain only valid characters.");
+
+        RuleFor(x => x.PaintingAuthor)
+            .NotEmpty().WithMessage("PaintingAuthor is required.")
+            .Length(2, 80).WithMessage("PaintingAuthor must be between 2 and 80 characters.");
+
+        RuleFor(x => x.Price)
+            .GreaterThan(0).WithMessage("Price must be greater than 0.");
+    }
 }
+
+//service
+public class WatercolorsPaintingService : IWatercolorsPaintingService
+{
+    private readonly WatercolorsPaintingRepo _repo;
+    private readonly IValidator<WatercolorsPainting> _validator;
+
+    public WatercolorsPaintingService(WatercolorsPaintingRepo repo, IValidator<WatercolorsPainting> validator)
+    {
+        _repo = repo;
+        _validator = validator;
+    }
+
+    public Task<int> Create(WatercolorsPainting watercolorsPainting)
+    {
+        watercolorsPainting.CreatedDate = DateTime.Now;
+        return _repo.CreateAsync(watercolorsPainting);
+    }
+
+    public async Task<string> CreateWithValidation(WatercolorsPainting watercolorsPainting)
+    {
+        // Kiểm tra dữ liệu với FluentValidation
+        var validationResult = await _validator.ValidateAsync(watercolorsPainting);
+        if (!validationResult.IsValid)
+        {
+            return string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+        }
+
+        watercolorsPainting.PaintingId = GenerateId();
+        var result = await _repo.CreateAsync(watercolorsPainting);
+        if (result == 1)
+        {
+            return "Thêm Thành công";
+        }
+        return "Thêm thất bại";
+    }
+
+    public string GenerateId()
+    {
+        return "WP" + DateTime.UtcNow.ToString("yyyyMMddHHmmss").Substring(0, 3) + Guid.NewGuid().ToString("N").Substring(0, 3);
+    }
+
+    public async Task<bool> Delete(string id)
+    {
+        var item = _repo.GetById(id);
+        return await _repo.RemoveAsync(item);
+    }
+
+    public async Task<List<WatercolorsPainting>> GetAll()
+    {
+        return await _repo.GetAllAsync();
+    }
+
+    public async Task<WatercolorsPainting> GetById(string id)
+    {
+        return await _repo.GetByIdAsync(id);
+    }
+
+    public async Task<List<WatercolorsPainting>> Search(int? item1, string? item2)
+    {
+        return await _repo.Search(item1, item2);
+    }
+
+
+}
+
+//SAMPLE CONTROLLER
+[Route("api/[controller]")]
+[ApiController]
+public class WatercolorsPaintingController : Controller
+{
+    private readonly IWatercolorsPaintingService _watercolorsPaintingService;
+    public WatercolorsPaintingController(IWatercolorsPaintingService watercolorsPaintingService)
+    {
+        _watercolorsPaintingService = watercolorsPaintingService;
+    }
+
+    [HttpGet("search")]
+    [Authorize(Roles = "1,2")]
+    public async Task<IEnumerable<WatercolorsPainting>> Get(string? author, int? date)
+    {
+        return await _watercolorsPaintingService.Search(date, author);
+    }
+    [HttpGet]
+    [Authorize(Roles = "1,2")]
+    [EnableQuery]
+    public async Task<IEnumerable<WatercolorsPainting>> Get()
+    {
+        return await _watercolorsPaintingService.GetAll();
+    }
+
+
+    [HttpGet("{id}")]
+    [Authorize(Roles = "1,2")]
+
+    public async Task<WatercolorsPainting> Get(string id)
+    {
+        return await _watercolorsPaintingService.GetById(id);
+    }
+
+    //[HttpPost]
+    //[Authorize(Roles = "1")]
+    //public async Task<IActionResult> Post(WatercolorsPainting transaction)
+    //{
+    //    var result = await _watercolorsPaintingService.CreateWithValidation(transaction);
+    //    if (result.Contains("Thêm Thành công"))
+    //    {
+    //        return Ok(new
+    //        {
+    //            Message = "Create successful",
+    //            Data = result
+    //        });
+    //    }
+    //    return BadRequest(new
+    //    {
+    //        Message = "Validation failed",
+    //        Errors = result
+    //    });
+    //}
+
+    //[HttpPut()]
+    //[Authorize(Roles = "1")]
+    //public async Task<IActionResult> Put(WatercolorsPainting watercolorsPainting)
+    //{
+    //    var result = await _watercolorsPaintingService.UpdateWithValidation(transaction);
+    //    if (result.Contains("Edit thành công"))
+    //    {
+    //        return Ok(new
+    //        {
+    //            Message = "Edit successful",
+    //            Data = result
+    //        });
+    //    }
+    //    return BadRequest(new
+    //    {
+    //        Message = "Validation failed",
+    //        Errors = result
+    //    });
+    //}
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "1")]
+    public async Task<bool> Delete(string id)
+    {
+        return await _watercolorsPaintingService.Delete(id);
+    }
+}
+
 
 //-----------VALIDATION--------
 
