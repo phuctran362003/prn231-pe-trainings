@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Repository.Entities;
 
 public partial class Style
 {
+    [Key]
     public string StyleId { get; set; } = null!;
 
     public string StyleName { get; set; } = null!;

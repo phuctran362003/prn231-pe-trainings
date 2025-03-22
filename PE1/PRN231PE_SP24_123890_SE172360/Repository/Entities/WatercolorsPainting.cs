@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Repository.Entities;
 
 public partial class WatercolorsPainting
 {
+    [Key]
     public string PaintingId { get; set; } = null!;
 
     public string PaintingName { get; set; } = null!;

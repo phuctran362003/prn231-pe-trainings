@@ -1,12 +1,17 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using Repository;
 using Repository.Entities;
 using Service.Interface;
 using Service.Service;
+using Service.Validator;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,14 +20,30 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+static IEdmModel GetEdmModel()
+{
+    var odataBuilder = new ODataConventionModelBuilder();
+    odataBuilder.EntitySet<Style>("Style"); // ENTITY
+    odataBuilder.EntitySet<WatercolorsPainting>("WatercolorsPainting"); // ENTITY
+    return odataBuilder.GetEdmModel();
+}
+
+builder.Services.AddControllers().AddOData(options =>
+{
+    options.Select().Filter().OrderBy().Expand().SetMaxTop(null).Count();
+    options.AddRouteComponents("odata", GetEdmModel());
+});
+
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<WatercolorsPainting2024DbContext>();
 
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<UserAccountRepo>();
-
-
-builder.Services.AddScoped<IStyleService, StyleService>();
+builder.Services.AddScoped<WatercolorsPaintingRepo>();
+builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingService>();
+builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
+builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();
 
 builder.Services.AddControllers().AddJsonOptions(option =>
 {
