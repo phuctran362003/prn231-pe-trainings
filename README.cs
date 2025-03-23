@@ -1,6 +1,6 @@
 ///ĐÂY LÀ FILE ĐỒ NGHỀ THI PE:
 
-// install online
+// Repository
 dotnet add package Microsoft.EntityFrameworkCore --version 8.0.5
 dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.5
 dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.5
@@ -8,10 +8,10 @@ dotnet add package Microsoft.Extensions.Configuration --version 8.0.0
 dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.0
 dotnet add package  Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.10
 
-//ApiLayer
+// ApiLayer
 dotnet add package Microsoft.AspNetCore.OData --version 8.2.5
 
-//tai package trong Service
+// Service
 dotnet add package FluentValidation.AspNetCore --version 8.5.1
 
 
@@ -83,8 +83,10 @@ builder.Services.AddControllers().AddOData(options =>
 
 builder.Services.AddSwaggerGen();
 
+//DbContext
 builder.Services.AddDbContext<WatercolorsPainting2024DbContext>();
 
+//DI
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<UserAccountRepo>();
 builder.Services.AddScoped<WatercolorsPaintingRepo>();
@@ -92,6 +94,7 @@ builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingServi
 builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
 builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();
 
+//
 builder.Services.AddControllers().AddJsonOptions(option =>
 {
     option.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -298,8 +301,6 @@ public class UserAccountRepo : DataAccessObject<UserAccount>
         {
             return await _context.UserAccounts.FirstOrDefaultAsync(a => a.UserEmail == email && a.UserPassword == password && i);
         }
-
-
     }
 
 //SAMPLE INTERFACE & SERVICE
@@ -374,7 +375,6 @@ public class UserAccountController : Controller
 
     public sealed record LoginRequest(string UserName, string Password);
 }
-
 
 // CRUD entity chính và phụ
 // SAMPLE REPO: 
@@ -629,10 +629,263 @@ public class WatercolorsPaintingController : Controller
         return await _watercolorsPaintingService.Delete(id);
     }
 }
+//-----------FE----------------
+//1) tạo project name
+ASP.NET Core web app(Model-View-Controller)
+
+//2) add package:
+dotnet add package System.IdentityModel.Tokens.Jwt --version 8.3.0
+
+//3) Program.cs
+builder.Services.AddAuthentication()
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = new PathString("/Account/Login");
+options.AccessDeniedPath = new PathString("/Account/Forbidden");
+options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+
+    });
+
+app.UseAuthentication();//phải đúng thứ tự như này, khác là sai
+app.UseAuthorization();
+
+//4) tao folder Account -> Login.cshtml(Trong folder Views)
 
 
+//5) them trong layout của folder Shared
+ <div class= "nav-item text-nowrap text-success" >
+     Welcome
+     < strong > @Context.Request.Cookies["UserName"].ToString() </ strong >
+     |  @*<a href="/Account/Logout">LogOut</a>*@
+     < a asp - controller = "Account" asp - action = "Logout" class= "text-danger" > Logout </ a >
+ </ div >
+
+//6) tạo folder entity chính (nhớ thêm s ở cuối tên) trong folder Views => add view có entity vô mượn tạm Model Repository
+
+//7) Bỏ vô index.cshtml của entity chính
+<form method="get" asp-action="Index" class= "mb-3" >
+    < div class= "form-row search" >
+        < div class= "form-group col-md-3" >
+            < label > TransactionType </ label >
+            < input type = "text" name = "transactionType" class= "form-control" value = "@Context.Request.Query["transactionType"]" />
+        </div>
+        <div class= "form-group col-md-3" >
+            < label > Amount </ label >
+            < input type = "number" name = "amount" class= "form-control" value = "@Context.Request.Query["amount"]" />
+        </div>
+        <div class= "form-group col-md-3" >
+            < label > PaymentMethod </ label >
+            < input type = "text" name = "paymentMethod" class= "form-control" value = "@Context.Request.Query["paymentMethod"]" />
+        </div>
+        <div class= "form-group col-md-3 align-self-end" >
+            < button type = "submit" class= "btn btn-primary" > Search </ button >
+        </ div >
+    </ div >
+</ form >
+
+//============================trong Folder Controller======================================
+//================================ AccountController.cs =================================
+//++++Tao controller cho Account cho Controllers.
+public class AccountController : Controller
+{
+    private string APIEndPoint = "https://localhost:7140/api/";
+    public IActionResult Index()
+    {
+        return RedirectToAction("Login");
+    }
+
+    public IActionResult Login()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(LoginRequest login)
+    {
+        try
+        {
+            using (var httpClient = new HttpClient())
+            {
+                using (var response = await httpClient.PostAsJsonAsync(APIEndPoint + "UserAccount/Login", login))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var tokenString = await response.Content.ReadAsStringAsync();
+
+                        var tokenHandler = new JwtSecurityTokenHandler();
+                        var jwtToken = tokenHandler.ReadToken(tokenString) as JwtSecurityToken;
+
+                        if (jwtToken != null)
+                        {
+                            var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+                            var roleId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+                            var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, userName),
+                        new Claim(ClaimTypes.Role, roleId),
+                    };
+
+                            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+                            Response.Cookies.Append("UserName", userName);
+                            Response.Cookies.Append("Role", roleId);
+                            Response.Cookies.Append("TokenString", tokenString);
+
+                            return RedirectToAction("Index", "Home");
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+        HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        ModelState.AddModelError("", "Login failure");
+        return View();
+    }
+
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        //delete cookies
+        Response.Cookies.Delete("UserName");
+        Response.Cookies.Delete("Role");
+        Response.Cookies.Delete("TokenString");
+
+        return RedirectToAction("Login", "Account");
+    }
+
+    public async Task<IActionResult> Forbidden()
+    {
+        return View();
+    }
+}
+
+//2) LoginRequest.cs trong models
+public class LoginRequest
+{
+    public string UserName { get; set; }
+    public string Password {  get; set; }
+}
+
+//----------------View Login---------------------------------
+@model Login.MVCWebApp.Models.LoginRequest // lay trong loginRequest cua models
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+ <style>
+     body {
+         height: 100vh;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+     }
+
+     .login-container {
+         background: white;
+         padding: 30px;
+         border-radius: 10px;
+         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+         width: 350px;
+     }
+ </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 class="login-title">Đăng nhập</h2>
+        <form asp-action="Login">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" placeholder="Nhập tài khoản" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input type="password" asp-for="Password" class="form-control" placeholder="Nhập mật khẩu" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="mb-3 text-center">
+                <input type="submit" value="Đăng nhập" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+//================================TransactionController.cs=================================
+
+//1) thêm vào đầu của 2 cái controller  => Nhớ có homeController nha
+ [Authorize]
+
+//2) thêm endpoint vào contructor============================================================================
+private string APIEndPoint = "https://localhost:7140/api/";
+public TransactionsController() { }
+
+//3) thêm search=============================================================================
+public async Task<IActionResult> Index(string? transactionType, string? amount, string? paymentMethod)
+{
+    using (var httpClient = new HttpClient())
+    {
+        #region Add Token to header of Request
+
+        var tokenString = HttpContext.Request.Cookies.FirstOrDefault(c => c.Key == "TokenString").Value;
+
+        httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + tokenString);
+
+        #endregion
+
+        var queryParams = new List<string>();
+        if (!string.IsNullOrEmpty(transactionType))
+            queryParams.Add($"transactionType={Uri.EscapeDataString(transactionType)}");
+        if (!string.IsNullOrEmpty(amount))
+            queryParams.Add($"amount={Uri.EscapeDataString(amount)}");
+        if (!string.IsNullOrEmpty(paymentMethod))
+            queryParams.Add($"paymentMethod={Uri.EscapeDataString(paymentMethod)}");
+
+        string endpoint = "Transaction";
+        if (queryParams.Count > 0)
+            endpoint += "/search?" + string.Join("&", queryParams);
+
+        using (var response = await httpClient.GetAsync(APIEndPoint + endpoint))
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<List<Transaction>>(content);
+
+                if (result != null)
+                {
+                    return View(result);
+                }
+            }
+        }
+    }
+
+    return View(new List<Transaction>());
+}
+4) them vào layout
+<li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Transactions" asp-action="Index">Transaction</a>
+                        </li>
+
+//đổi endpoint https://localhost:7273/api================ //!important
+// we can stop here
 //-----------VALIDATION--------
-
 #region Required Attributes
 
 [Required]
