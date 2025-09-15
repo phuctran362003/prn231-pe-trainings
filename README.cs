@@ -1,3 +1,21 @@
+
+# tạo solution
+dotnet new sln -n PRN231PE_SP24_123890_SE172360
+
+# tạo project
+dotnet new webapi -n PE_PRN231_SP24_123890_SE172360_BE
+dotnet new classlib -n Service
+dotnet new classlib -n Repository
+
+# thêm vào solution
+dotnet sln add PE_PRN231_SP24_123890_SE172360_BE/PE_PRN231_SP24_123890_SE172360_BE.csproj
+dotnet sln add Service/Service.csproj
+dotnet sln add Repository/Repository.csproj
+
+# tham chiếu giữa các layer
+dotnet add PE_PRN231_SP24_123890_SE172360_BE/PE_PRN231_SP24_123890_SE172360_BE.csproj reference Service/Service.csproj
+dotnet add Service/Service.csproj reference Repository/Repository.csproj
+
 ///ĐÂY LÀ FILE ĐỒ NGHỀ THI PE:
 
 // Repository
