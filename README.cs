@@ -1,20 +1,17 @@
+# tạo solution (để trống tên để dễ copy)
+dotnet new sln - n <name> 
 
-# tạo solution
-dotnet new sln -n PRN231PE_SP24_123890_SE172360
-
-# tạo project
-dotnet new webapi -n PE_PRN231_SP24_123890_SE172360_BE
-dotnet new classlib -n Service
-dotnet new classlib -n Repository
+# tạo 2 class library
+dotnet new classlib - n Service
+dotnet new classlib - n Repository
 
 # thêm vào solution
-dotnet sln add PE_PRN231_SP24_123890_SE172360_BE/PE_PRN231_SP24_123890_SE172360_BE.csproj
 dotnet sln add Service/Service.csproj
 dotnet sln add Repository/Repository.csproj
 
 # tham chiếu giữa các layer
-dotnet add PE_PRN231_SP24_123890_SE172360_BE/PE_PRN231_SP24_123890_SE172360_BE.csproj reference Service/Service.csproj
 dotnet add Service/Service.csproj reference Repository/Repository.csproj
+
 
 ///ĐÂY LÀ FILE ĐỒ NGHỀ THI PE:
 
@@ -49,7 +46,7 @@ dotnet add package FluentValidation.AspNetCore --version 8.5.1
     < PackageReference Include = "Microsoft.Extensions.Configuration.Json" Version = "8.0.0" />
 
 //DATABASE SCAFFOLD ( tự đổi tên server + database của đề)
-dotnet ef dbcontext scaffold "Server=DEVPHUCTRANN; Database=WatercolorsPainting2024DB; User Id=sa; Password=12345; TrustServerCertificate=True; Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer
+dotnet ef dbcontext scaffold "Server=103.211.201.141,1433; Database=spring2025productinventorydb; User Id=sa; Password=YourStrong!Passw0rd; TrustServerCertificate=True; Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer --output-dir Entities
 
 //BỎ ĐỐNG NÀY VÀO DBCONTEXT 
 public static string GetConnectionString(string connectionStringName)
@@ -70,7 +67,7 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
     "AllowedHosts": "*",
     "ConnectionStrings": {
-        "DefaultConnection": "Server=DEVPHUCTRANN; Database=WatercolorsPainting2024DB; User Id=sa; Password=12345; TrustServerCertificate=True;Encrypt=False;"
+        "DefaultConnection": "Server=103.211.201.141,1433; Database=spring2025productinventorydb; User Id=sa; Password=YourStrong!Passw0rd; TrustServerCertificate=True; Encrypt=False"
   },
     "Jwt": {
         "Key": "0ccfeb299b126a479a64630e2d34e9e91e5fcbcaea8ac9e3347e224b0557a53e",
