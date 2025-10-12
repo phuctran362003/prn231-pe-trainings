@@ -1,0 +1,252 @@
+{
+	"info": {
+		"_postman_id": "63ad8cec-860d-4e17-9fde-8595ecdc4727",
+		"name": "PRN231_SU25_SE172295",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30227146"
+	},
+	"item": [
+		{
+			"name": "LoginSuccess",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"administrator@cheetah.com\",\r\n  \"password\": \"@1\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahAccount/Login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahAccount",
+						"Login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LoginFailed",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"administrator@cheetah.com\",\r\n  \"password\": \"@123\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahAccount/Login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahAccount",
+						"Login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Odata",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAll",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbmlzdHJhdG9yQGNoZWV0YWguY29tIiwiUm9sZSI6IjUiLCJBY2NvdW50SWQiOiI1IiwiZXhwIjoxNzUyOTkxMTQxLCJpc3MiOiJMaW5oTmd1eWVuX0lzc3VlciIsImF1ZCI6IkxpbmhOZ3V5ZW5fQXVkaWVuY2UifQ.HvIhyMhqLeEdwuqXn1x8joCeUfhmFc0FzGVHepuXStE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahProfile",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahProfile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetById",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbmlzdHJhdG9yQGNoZWV0YWguY29tIiwiUm9sZSI6IjUiLCJBY2NvdW50SWQiOiI1IiwiZXhwIjoxNzUyOTkxMTQxLCJpc3MiOiJMaW5oTmd1eWVuX0lzc3VlciIsImF1ZCI6IkxpbmhOZ3V5ZW5fQXVkaWVuY2UifQ.HvIhyMhqLeEdwuqXn1x8joCeUfhmFc0FzGVHepuXStE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahProfiles/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahProfiles",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbmlzdHJhdG9yQGNoZWV0YWguY29tIiwiUm9sZSI6IjUiLCJBY2NvdW50SWQiOiI1IiwiZXhwIjoxNzUyOTkxMTQxLCJpc3MiOiJMaW5oTmd1eWVuX0lzc3VlciIsImF1ZCI6IkxpbmhOZ3V5ZW5fQXVkaWVuY2UifQ.HvIhyMhqLeEdwuqXn1x8joCeUfhmFc0FzGVHepuXStE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"cheetahTypeId\": 2,\r\n  \"cheetahName\": \"test\",\r\n  \"weight\": 33,\r\n  \"characteristics\": \"Test\",\r\n  \"careNeeds\": \"These lions are classified as endangered by the IUCN\",\r\n  \"modifiedDate\": \"2025-03-01T00:00:00\",\r\n  \"cheetahType\": {\r\n    \"cheetahTypeId\": 2,\r\n    \"cheetahTypeName\": \"​Asiatic Cheetah\",\r\n    \"origin\": \"Asiatic\",\r\n    \"description\": \"Asiatic Cheetahs are critically endangered species in today’s world, being a significant target of poaching while also facing severe threats from habitat loss\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahProfiles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahProfiles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbmlzdHJhdG9yQGNoZWV0YWguY29tIiwiUm9sZSI6IjUiLCJBY2NvdW50SWQiOiI1IiwiZXhwIjoxNzUyOTkxODI4LCJpc3MiOiJMaW5oTmd1eWVuX0lzc3VlciIsImF1ZCI6IkxpbmhOZ3V5ZW5fQXVkaWVuY2UifQ.bKWnCvgPwe2NGmt22-3Hedl69oFyKVuFrqWwoocdgQA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"cheetahTypeId\": 2,\r\n  \"cheetahName\": \"​Asiatic Cheetah L12\",\r\n  \"weight\": 33,\r\n  \"characteristics\": \"test\",\r\n  \"careNeeds\": \"These lions are classified as endangered by the IUCN\",\r\n  \"modifiedDate\": \"2025-03-01T00:00:00\",\r\n  \"cheetahType\": {\r\n    \"cheetahTypeId\": 2,\r\n    \"cheetahTypeName\": \"​Asiatic Cheetah\",\r\n    \"origin\": \"Asiatic\",\r\n    \"description\": \"Asiatic Cheetahs are critically endangered species in today’s world, being a significant target of poaching while also facing severe threats from habitat loss\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahProfiles/4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahProfiles",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbmlzdHJhdG9yQGNoZWV0YWguY29tIiwiUm9sZSI6IjUiLCJBY2NvdW50SWQiOiI1IiwiZXhwIjoxNzUyOTkxODI4LCJpc3MiOiJMaW5oTmd1eWVuX0lzc3VlciIsImF1ZCI6IkxpbmhOZ3V5ZW5fQXVkaWVuY2UifQ.bKWnCvgPwe2NGmt22-3Hedl69oFyKVuFrqWwoocdgQA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5185/api/CheetahProfile/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5185",
+					"path": [
+						"api",
+						"CheetahProfile",
+						"2"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
