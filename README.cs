@@ -1,9 +1,7 @@
 #region SETUP_PACKAGES
 
 // Repository
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 dotnet add package Microsoft.EntityFrameworkCore --version 8.0.5
@@ -440,18 +438,6 @@ public class SystemAccountController : ControllerBase
 #endregion
 
 #region SAMPLE_ENTITY_REPO
-
-#endregion
-
-#region SAMPLE_ENTITY_SERVICE 
-#endregion
-
-#region
-#endregion
-
-
-// CRUD entity chính và phụ
-// SAMPLE REPO: 
 public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
 {
     public WatercolorsPaintingRepo()
@@ -475,52 +461,23 @@ public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
         return item;
     }
 
-    public async Task<List<WatercolorsPainting>> Search(int? item1, string? item2)
-    {
-        return await _context.WatercolorsPaintings
-            .Include(i => i.Style)
-            .Where(u => (string.IsNullOrEmpty(item2) || u.PaintingAuthor.ToLower().Contains(item2.ToLower()))
-                        && (!item1.HasValue || u.PublishYear == item1.Value))
-            .ToListAsync();
-    }
+    //public async Task<List<WatercolorsPainting>> Search(int? item1, string? item2)
+    //{
+    //    return await _context.WatercolorsPaintings
+    //        .Include(i => i.Style)
+    //        .Where(u => (string.IsNullOrEmpty(item2) || u.PaintingAuthor.ToLower().Contains(item2.ToLower()))
+    //                    && (!item1.HasValue || u.PublishYear == item1.Value))
+    //        .ToListAsync();
+    //}
 }
 
-//SEARCH
-//Search điều kiện And
-public async Task<List<Team>> GetAllPaged(int PageSize, int pageNumber, int? Position, string GroupName)// 1 string, 1 int
-{
-    return await _context.Teams
-        .Include(i => i.Group)
-        .Where(u => (u.Group.GroupName.ToLower().Contains(GroupName.ToLower()) || string.IsNullOrEmpty(GroupName))
-                    && ((!Position.HasValue) || (u.Position == Position.Value)))
-        .Skip((pageNumber - 1) * PageSize)
-        .Take(PageSize)
-        .ToListAsync();
-}
-//Search điều kiện OR
-public async Task<List<OilPaintingArt>> GetAllPaged(int PageSize, int pageNumber, string OilPaintingArtStyle, string Artist) // 2 string
-{
-    return await _context.OilPaintingArts
-        .Include(i => i.Supplier)
-        .Where(u => (string.IsNullOrEmpty(OilPaintingArtStyle) && string.IsNullOrEmpty(Artist))
-                    || (!string.IsNullOrEmpty(OilPaintingArtStyle) && u.OilPaintingArtStyle.ToLower().Contains(OilPaintingArtStyle.ToLower()))
-                    || ((!string.IsNullOrEmpty(Artist) && u.Artist.ToLower().Contains(Artist.ToLower()))))
-        .Skip((pageNumber - 1) * PageSize)
-        .Take(PageSize)
-        .ToListAsync();
-}
-public async Task<List<Team>> GetAllPaged(int pageSize, int pageNumber, int? position, string groupName)// 1 string , 1 int
-{
-    return await _context.Teams
-        .Include(i => i.Group)
-        .Where(u =>
-            (!position.HasValue && string.IsNullOrEmpty(groupName))
-            || (position.HasValue && u.Position == position.Value)
-            || (!string.IsNullOrEmpty(groupName) && u.Group.GroupName.ToLower().Contains(groupName.ToLower())))
-        .Skip((pageNumber - 1) * pageSize)
-        .Take(pageSize)
-        .ToListAsync();
-}
+#endregion
+
+#region SAMPLE_ENTITY_SERVICE 
+#endregion
+
+#region
+#endregion
 
 //SAMPLE SERVICE & INTERFACE
 //interface
@@ -618,8 +575,6 @@ public class WatercolorsPaintingService : IWatercolorsPaintingService
     {
         return await _repo.Search(item1, item2);
     }
-
-
 }
 
 //SAMPLE CONTROLLER
