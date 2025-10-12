@@ -2,7 +2,7 @@
 
 namespace Service
 {
-    public interface ISystemAccountService
+    public interface IAuthenService
     {
         public Task<SystemAccount> Authenticate(string username, string password);
         string GenerateJSONWebToken(SystemAccount systemUserAccount);

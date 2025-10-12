@@ -8,12 +8,12 @@ using System.Text;
 
 namespace Service
 {
-    public class SystemAccountService : ISystemAccountService
+    public class AuthenService : IAuthenService
     {
         private readonly SystemAccountRepo _repo;
         private readonly IConfiguration _configuration;
 
-        public SystemAccountService(IConfiguration configuration)
+        public AuthenService(IConfiguration configuration)
         {
             _repo = new SystemAccountRepo(); // tự new, không qua DI
             _configuration = configuration;

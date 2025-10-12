@@ -1,21 +1,11 @@
-# tạo solution (để trống tên để dễ copy)
-dotnet new sln - n <name> 
-
-# tạo 2 class library
-dotnet new classlib - n Service
-dotnet new classlib - n Repository
-
-# thêm vào solution
-dotnet sln add Service/Service.csproj
-dotnet sln add Repository/Repository.csproj
-
-# tham chiếu giữa các layer
-dotnet add Service/Service.csproj reference Repository/Repository.csproj
-
-
-///ĐÂY LÀ FILE ĐỒ NGHỀ THI PE:
+#region SETUP_PACKAGES
 
 // Repository
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+
 dotnet add package Microsoft.EntityFrameworkCore --version 8.0.5
 dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.5
 dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.5
@@ -45,6 +35,10 @@ dotnet add package FluentValidation.AspNetCore --version 8.5.1
     < PackageReference Include = "Microsoft.Extensions.Configuration" Version = "8.0.0" />
     < PackageReference Include = "Microsoft.Extensions.Configuration.Json" Version = "8.0.0" />
 
+#endregion
+
+#region DB_CONTEXT
+
 //DATABASE SCAFFOLD ( tự đổi tên server + database của đề)
 dotnet ef dbcontext scaffold "Server=103.211.201.141,1433; Database=spring2025productinventorydb; User Id=sa; Password=YourStrong!Passw0rd; TrustServerCertificate=True; Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer --output-dir Entities
 
@@ -65,20 +59,26 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 //// TRONG appsettings.json SETUP NHƯ SAU (miễn giống với scaffold là được): 
 
 {
-    "AllowedHosts": "*",
-    "ConnectionStrings": {
+    "Logging": {
+        "LogLevel": {
+            "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+        }
+    },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
         "DefaultConnection": "Server=103.211.201.141,1433; Database=spring2025productinventorydb; User Id=sa; Password=YourStrong!Passw0rd; TrustServerCertificate=True; Encrypt=False"
   },
-    "Jwt": {
+  "Jwt": {
         "Key": "0ccfeb299b126a479a64630e2d34e9e91e5fcbcaea8ac9e3347e224b0557a53e",
-        "Issuer": "https://localhost:7075",
-        "Audience": "https://localhost:7075"
+    "Issuer": "https://localhost:7075",
+    "Audience": "https://localhost:7075"
   }
 }
 
+#endregion
 
-
-//====================Bước 8===============================
+#region PROGRAM.CS
 //PROGRAM.CS
 
 //JSON CYCLE
@@ -98,16 +98,16 @@ builder.Services.AddControllers().AddOData(options =>
 
 builder.Services.AddSwaggerGen();
 
-//DbContext
-builder.Services.AddDbContext<WatercolorsPainting2024DbContext>();
+////DbContext
+//builder.Services.AddDbContext<WatercolorsPainting2024DbContext>();
 
-//DI
-builder.Services.AddScoped<IUserAccountService, UserAccountService>();
-builder.Services.AddScoped<UserAccountRepo>();
-builder.Services.AddScoped<WatercolorsPaintingRepo>();
-builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingService>();
-builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
-builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();
+////DI
+//builder.Services.AddScoped<IUserAccountService, UserAccountService>();
+//builder.Services.AddScoped<UserAccountRepo>();
+//builder.Services.AddScoped<WatercolorsPaintingRepo>();
+//builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingService>();
+//builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
+//builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();
 
 //
 builder.Services.AddControllers().AddJsonOptions(option =>
@@ -160,213 +160,220 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
-//====================Bước 9==============================
-// Generic Repository/Data Access Object
-#region
+#endregion
+
+#region Generic Repository/Data Access Object
+
 public class DataAccessObject<T> where T : class
 {
-    protected OilPaintingArt2024DbContext _context;
+    protected Spring2025productinventorydbContext Context;
 
     // Default constructor, initializes the DbContext if null
     public DataAccessObject()
     {
-        _context ??= new OilPaintingArt2024DbContext();
+        Context = new Spring2025productinventorydbContext();
     }
 
     // Constructor that accepts a DbContext
-    public DataAccessObject(OilPaintingArt2024DbContext context)
+    public DataAccessObject(Spring2025productinventorydbContext context)
     {
-        _context = context;
+        Context = context;
     }
 
     // Synchronous method to retrieve all entities
     public List<T> GetAll()
     {
-        return _context.Set<T>().ToList();
+        return Context.Set<T>().ToList();
     }
 
     // Asynchronous method to retrieve all entities
     public async Task<List<T>> GetAllAsync()
     {
-        return await _context.Set<T>().ToListAsync();
+        return await Context.Set<T>().ToListAsync();
     }
 
     // Synchronous method to create a new entity
     public void Create(T entity)
     {
-        _context.Add(entity);
-        _context.SaveChanges();
+        Context.Add(entity);
+        Context.SaveChanges();
     }
 
     // Asynchronous method to create a new entity
     public async Task<int> CreateAsync(T entity)
     {
-        _context.Add(entity);
-        return await _context.SaveChangesAsync();
+        Context.Add(entity);
+        return await Context.SaveChangesAsync();
     }
 
     // Synchronous method to update an entity
     public void Update(T entity)
     {
-        var tracker = _context.Attach(entity);
+        var tracker = Context.Attach(entity);
         tracker.State = EntityState.Modified;
-        _context.SaveChanges();
+        Context.SaveChanges();
     }
 
     // Asynchronous method to update an entity
     public async Task<int> UpdateAsync(T entity)
     {
-        var tracker = _context.Attach(entity);
+        var tracker = Context.Attach(entity);
         tracker.State = EntityState.Modified;
-        return await _context.SaveChangesAsync();
+        return await Context.SaveChangesAsync();
     }
 
     // Synchronous method to remove an entity
     public bool Remove(T entity)
     {
-        _context.Remove(entity);
-        _context.SaveChanges();
+        Context.Remove(entity);
+        Context.SaveChanges();
         return true;
     }
 
     // Asynchronous method to remove an entity
     public async Task<bool> RemoveAsync(T entity)
     {
-        _context.Remove(entity);
-        await _context.SaveChangesAsync();
+        Context.Remove(entity);
+        await Context.SaveChangesAsync();
         return true;
     }
 
     // Retrieve entity by integer ID (synchronously)
     public T GetById(int id)
     {
-        return _context.Set<T>().Find(id);
+        return Context.Set<T>().Find(id);
     }
 
     // Retrieve entity by integer ID (asynchronously)
     public async Task<T> GetByIdAsync(int id)
     {
-        return await _context.Set<T>().FindAsync(id);
+        return await Context.Set<T>().FindAsync(id);
     }
 
     // Retrieve entity by string ID (synchronously)
     public T GetById(string code)
     {
-        return _context.Set<T>().Find(code);
+        return Context.Set<T>().Find(code);
     }
 
     // Retrieve entity by string ID (asynchronously)
     public async Task<T> GetByIdAsync(string code)
     {
-        return await _context.Set<T>().FindAsync(code);
+        return await Context.Set<T>().FindAsync(code);
     }
 
     // Retrieve entity by Guid (synchronously)
     public T GetById(Guid code)
     {
-        return _context.Set<T>().Find(code);
+        return Context.Set<T>().Find(code);
     }
 
     // Retrieve entity by Guid (asynchronously)
     public async Task<T> GetByIdAsync(Guid code)
     {
-        return await _context.Set<T>().FindAsync(code);
+        return await Context.Set<T>().FindAsync(code);
     }
-
-    #region Separating assign entity and save operations
 
     // Prepare an entity for creation (no save)
     public void PrepareCreate(T entity)
     {
-        _context.Add(entity);
+        Context.Add(entity);
     }
 
     // Prepare an entity for update (no save)
     public void PrepareUpdate(T entity)
     {
-        var tracker = _context.Attach(entity);
+        var tracker = Context.Attach(entity);
         tracker.State = EntityState.Modified;
     }
 
     // Prepare an entity for removal (no save)
     public void PrepareRemove(T entity)
     {
-        _context.Remove(entity);
+        Context.Remove(entity);
     }
 
     // Save changes synchronously
     public int Save()
     {
-        return _context.SaveChanges();
+        return Context.SaveChanges();
     }
 
     // Save changes asynchronously
     public async Task<int> SaveAsync()
     {
-        return await _context.SaveChangesAsync();
+        return await Context.SaveChangesAsync();
     }
 }
 
-//SAMPLE REPOSITORY
-public class UserAccountRepo : DataAccessObject<UserAccount>
-    {
-        public UserAccountRepo(WatercolorsPainting2024DbContext context) : base(context) { }
+#endregion
 
-        public async Task<UserAccount> GetByEmailAndPassword(string email, string password)
-        {
-            return await _context.UserAccounts.FirstOrDefaultAsync(a => a.UserEmail == email && a.UserPassword == password && i);
-        }
+#region SAMPLE_REPOSITORY
+public class SystemAccountRepo : DataAccessObject<SystemAccount>
+{
+    public SystemAccountRepo()
+        : base(new Spring2025productinventorydbContext())
+    {
     }
 
-//SAMPLE INTERFACE & SERVICE
-public interface IUserAccountService
-{
-    public Task<UserAccount> Authenticate(string username, string password);
-}
-
-public class UserAccountService : IUserAccountService
-{
-    private readonly UserAccountRepo _repo;
-
-    public UserAccountService(UserAccountRepo repo)
+    public async Task<SystemAccount> GetByEmailAndPassword(string email, string password)
     {
-        _repo = repo;
-    }
-
-    public async Task<UserAccount> Authenticate(string username, string password)
-    {
-        return await _repo.GetByEmailAndPassword(username, password);
+        return await Context.SystemAccounts
+            .FirstOrDefaultAsync(a => a.Username == email && a.Password == password && a.IsActive == true);
     }
 }
+#endregion
 
-//SAMPLE CONTROLLER
-[Route("api/[controller]")]
-[ApiController]
-public class UserAccountController : Controller
+#region SAMPLE_AUTHEN_SERVICE
+public interface IAuthenService
 {
+    public Task<SystemAccount> Authenticate(string username, string password);
+    string GenerateJSONWebToken(SystemAccount systemUserAccount);
+    string GetRoleName(int? role);
+}
+
+public enum UserRole
+{
+    Admin = 1,
+    Manager = 2,
+    Analyst = 3,
+    User = 4
+}
+
+public class LoginRequest()
+{
+    public string UserName { get; set; } = UserName;
+    public string Password { get; set; } = Password;
+}
+
+public class LoginResponse
+{
+    public string Token { get; set; }
+    public string RoleName { get; set; }
+}
+
+public class AuthenService : IAuthenService
+{
+    private readonly SystemAccountRepo _repo;
     private readonly IConfiguration _configuration;
-    private readonly IUserAccountService _userAccountService;
 
-    public UserAccountController(IConfiguration configuration, IUserAccountService userAccountService)
+    public AuthenService(IConfiguration configuration)
     {
+        _repo = new SystemAccountRepo(); // tự new, không qua DI
         _configuration = configuration;
-        _userAccountService = userAccountService;
     }
 
-    [HttpPost("Login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<SystemAccount> Authenticate(string username, string password)
     {
-        var user = _userAccountService.Authenticate(request.UserName, request.Password);
-
-        if (user == null || user.Result == null)
-            return Unauthorized();
-
-        var token = GenerateJSONWebToken(user.Result);
-
-        return Ok(token);
+        var account = await _repo.GetByEmailAndPassword(username, password);
+        if (account == null)
+        {
+            throw new Exception("Invalid credentials or inactive account.");
+        }
+        return account;
     }
 
-    private string GenerateJSONWebToken(UserAccount systemUserAccount)
+    public string GenerateJSONWebToken(SystemAccount systemUserAccount)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -375,8 +382,8 @@ public class UserAccountController : Controller
                 , _configuration["Jwt:Audience"]
                 , new Claim[]
                 {
-            new(ClaimTypes.Name, systemUserAccount.UserEmail),
-            new(ClaimTypes.Role, systemUserAccount.Role.ToString()),
+                        new(ClaimTypes.Name, systemUserAccount.Email),
+                        new(ClaimTypes.Role, systemUserAccount.Role.ToString()),
                 },
                 expires: DateTime.Now.AddMinutes(120),
                 signingCredentials: credentials
@@ -387,9 +394,61 @@ public class UserAccountController : Controller
         return tokenString;
     }
 
-
-    public sealed record LoginRequest(string UserName, string Password);
+    public string GetRoleName(int? role)
+    {
+        return role switch
+        {
+            1 => "Admin",
+            2 => "Manager",
+            3 => "Analyst",
+            4 => "User",
+            _ => "Unknown"
+        };
+    }
 }
+#endregion
+
+#region SAMPLE_AUTHEN_CONTROLLER
+public class SystemAccountController : ControllerBase
+{
+    private readonly IAuthenService _service;
+
+    public SystemAccountController(IAuthenService service)
+    {
+        _service = service;
+    }
+
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _service.Authenticate(request.UserName, request.Password);
+
+        if (user == null)
+            return Unauthorized();
+
+        var token = _service.GenerateJSONWebToken(user);
+
+        var response = new LoginResponse
+        {
+            Token = token,
+            RoleName = _service.GetRoleName(user.Role)
+        };
+
+        return Ok(response);
+    }
+}
+#endregion
+
+#region SAMPLE_ENTITY_REPO
+
+#endregion
+
+#region SAMPLE_ENTITY_SERVICE 
+#endregion
+
+#region
+#endregion
+
 
 // CRUD entity chính và phụ
 // SAMPLE REPO: 
@@ -428,7 +487,7 @@ public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
 
 //SEARCH
 //Search điều kiện And
-    public async Task<List<Team>> GetAllPaged(int PageSize, int pageNumber, int? Position, string GroupName)// 1 string, 1 int
+public async Task<List<Team>> GetAllPaged(int PageSize, int pageNumber, int? Position, string GroupName)// 1 string, 1 int
 {
     return await _context.Teams
         .Include(i => i.Group)
@@ -438,30 +497,30 @@ public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
         .Take(PageSize)
         .ToListAsync();
 }
-    //Search điều kiện OR
-    public async Task<List<OilPaintingArt>> GetAllPaged(int PageSize, int pageNumber, string OilPaintingArtStyle, string Artist) // 2 string
-    {
-        return await _context.OilPaintingArts
-            .Include(i => i.Supplier)
-            .Where(u => (string.IsNullOrEmpty(OilPaintingArtStyle) && string.IsNullOrEmpty(Artist))
-                        || (!string.IsNullOrEmpty(OilPaintingArtStyle) && u.OilPaintingArtStyle.ToLower().Contains(OilPaintingArtStyle.ToLower()))
-                        || ((!string.IsNullOrEmpty(Artist) && u.Artist.ToLower().Contains(Artist.ToLower()))))
-            .Skip((pageNumber - 1) * PageSize)
-            .Take(PageSize)
-            .ToListAsync();
-    }
-    public async Task<List<Team>> GetAllPaged(int pageSize, int pageNumber, int? position, string groupName)// 1 string , 1 int
-    {
-        return await _context.Teams
-            .Include(i => i.Group)
-            .Where(u =>
-                (!position.HasValue && string.IsNullOrEmpty(groupName))
-                || (position.HasValue && u.Position == position.Value)
-                || (!string.IsNullOrEmpty(groupName) && u.Group.GroupName.ToLower().Contains(groupName.ToLower())))
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
+//Search điều kiện OR
+public async Task<List<OilPaintingArt>> GetAllPaged(int PageSize, int pageNumber, string OilPaintingArtStyle, string Artist) // 2 string
+{
+    return await _context.OilPaintingArts
+        .Include(i => i.Supplier)
+        .Where(u => (string.IsNullOrEmpty(OilPaintingArtStyle) && string.IsNullOrEmpty(Artist))
+                    || (!string.IsNullOrEmpty(OilPaintingArtStyle) && u.OilPaintingArtStyle.ToLower().Contains(OilPaintingArtStyle.ToLower()))
+                    || ((!string.IsNullOrEmpty(Artist) && u.Artist.ToLower().Contains(Artist.ToLower()))))
+        .Skip((pageNumber - 1) * PageSize)
+        .Take(PageSize)
+        .ToListAsync();
+}
+public async Task<List<Team>> GetAllPaged(int pageSize, int pageNumber, int? position, string groupName)// 1 string , 1 int
+{
+    return await _context.Teams
+        .Include(i => i.Group)
+        .Where(u =>
+            (!position.HasValue && string.IsNullOrEmpty(groupName))
+            || (position.HasValue && u.Position == position.Value)
+            || (!string.IsNullOrEmpty(groupName) && u.Group.GroupName.ToLower().Contains(groupName.ToLower())))
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+}
 
 //SAMPLE SERVICE & INTERFACE
 //interface
@@ -644,262 +703,7 @@ public class WatercolorsPaintingController : Controller
         return await _watercolorsPaintingService.Delete(id);
     }
 }
-//-----------FE----------------
-//1) tạo project name
-ASP.NET Core web app(Model-View-Controller)
 
-//2) add package:
-dotnet add package System.IdentityModel.Tokens.Jwt --version 8.3.0
-
-//3) Program.cs
-builder.Services.AddAuthentication()
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-    {
-        options.LoginPath = new PathString("/Account/Login");
-options.AccessDeniedPath = new PathString("/Account/Forbidden");
-options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-
-    });
-
-app.UseAuthentication();//phải đúng thứ tự như này, khác là sai
-app.UseAuthorization();
-
-//4) tao folder Account -> Login.cshtml(Trong folder Views)
-
-
-//5) them trong layout của folder Shared
- <div class= "nav-item text-nowrap text-success" >
-     Welcome
-     < strong > @Context.Request.Cookies["UserName"].ToString() </ strong >
-     |  @*<a href="/Account/Logout">LogOut</a>*@
-     < a asp - controller = "Account" asp - action = "Logout" class= "text-danger" > Logout </ a >
- </ div >
-
-//6) tạo folder entity chính (nhớ thêm s ở cuối tên) trong folder Views => add view có entity vô mượn tạm Model Repository
-
-//7) Bỏ vô index.cshtml của entity chính
-<form method="get" asp-action="Index" class= "mb-3" >
-    < div class= "form-row search" >
-        < div class= "form-group col-md-3" >
-            < label > TransactionType </ label >
-            < input type = "text" name = "transactionType" class= "form-control" value = "@Context.Request.Query["transactionType"]" />
-        </div>
-        <div class= "form-group col-md-3" >
-            < label > Amount </ label >
-            < input type = "number" name = "amount" class= "form-control" value = "@Context.Request.Query["amount"]" />
-        </div>
-        <div class= "form-group col-md-3" >
-            < label > PaymentMethod </ label >
-            < input type = "text" name = "paymentMethod" class= "form-control" value = "@Context.Request.Query["paymentMethod"]" />
-        </div>
-        <div class= "form-group col-md-3 align-self-end" >
-            < button type = "submit" class= "btn btn-primary" > Search </ button >
-        </ div >
-    </ div >
-</ form >
-
-//============================trong Folder Controller======================================
-//================================ AccountController.cs =================================
-//++++Tao controller cho Account cho Controllers.
-public class AccountController : Controller
-{
-    private string APIEndPoint = "https://localhost:7140/api/";
-    public IActionResult Index()
-    {
-        return RedirectToAction("Login");
-    }
-
-    public IActionResult Login()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Login(LoginRequest login)
-    {
-        try
-        {
-            using (var httpClient = new HttpClient())
-            {
-                using (var response = await httpClient.PostAsJsonAsync(APIEndPoint + "UserAccount/Login", login))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var tokenString = await response.Content.ReadAsStringAsync();
-
-                        var tokenHandler = new JwtSecurityTokenHandler();
-                        var jwtToken = tokenHandler.ReadToken(tokenString) as JwtSecurityToken;
-
-                        if (jwtToken != null)
-                        {
-                            var userName = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
-                            var roleId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-
-                            var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, userName),
-                        new Claim(ClaimTypes.Role, roleId),
-                    };
-
-                            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-
-                            Response.Cookies.Append("UserName", userName);
-                            Response.Cookies.Append("Role", roleId);
-                            Response.Cookies.Append("TokenString", tokenString);
-
-                            return RedirectToAction("Index", "Home");
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-
-        }
-
-        HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        ModelState.AddModelError("", "Login failure");
-        return View();
-    }
-
-    public async Task<IActionResult> Logout()
-    {
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        //delete cookies
-        Response.Cookies.Delete("UserName");
-        Response.Cookies.Delete("Role");
-        Response.Cookies.Delete("TokenString");
-
-        return RedirectToAction("Login", "Account");
-    }
-
-    public async Task<IActionResult> Forbidden()
-    {
-        return View();
-    }
-}
-
-//2) LoginRequest.cs trong models
-public class LoginRequest
-{
-    public string UserName { get; set; }
-    public string Password {  get; set; }
-}
-
-//----------------View Login---------------------------------
-@model Login.MVCWebApp.Models.LoginRequest // lay trong loginRequest cua models
-
-@{
-    Layout = null;
-}
-
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
- <style>
-     body {
-         height: 100vh;
-         display: flex;
-         justify-content: center;
-         align-items: center;
-     }
-
-     .login-container {
-         background: white;
-         padding: 30px;
-         border-radius: 10px;
-         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-         width: 350px;
-     }
- </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2 class="login-title">Đăng nhập</h2>
-        <form asp-action="Login">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="mb-3">
-                <label asp-for="UserName" class="form-label"></label>
-                <input asp-for="UserName" class="form-control" placeholder="Nhập tài khoản" />
-                <span asp-validation-for="UserName" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input type="password" asp-for="Password" class="form-control" placeholder="Nhập mật khẩu" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="mb-3 text-center">
-                <input type="submit" value="Đăng nhập" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</body>
-</html>
-//================================TransactionController.cs=================================
-
-//1) thêm vào đầu của 2 cái controller  => Nhớ có homeController nha
- [Authorize]
-
-//2) thêm endpoint vào contructor============================================================================
-private string APIEndPoint = "https://localhost:7140/api/";
-public TransactionsController() { }
-
-//3) thêm search=============================================================================
-public async Task<IActionResult> Index(string? transactionType, string? amount, string? paymentMethod)
-{
-    using (var httpClient = new HttpClient())
-    {
-        #region Add Token to header of Request
-
-        var tokenString = HttpContext.Request.Cookies.FirstOrDefault(c => c.Key == "TokenString").Value;
-
-        httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + tokenString);
-
-        #endregion
-
-        var queryParams = new List<string>();
-        if (!string.IsNullOrEmpty(transactionType))
-            queryParams.Add($"transactionType={Uri.EscapeDataString(transactionType)}");
-        if (!string.IsNullOrEmpty(amount))
-            queryParams.Add($"amount={Uri.EscapeDataString(amount)}");
-        if (!string.IsNullOrEmpty(paymentMethod))
-            queryParams.Add($"paymentMethod={Uri.EscapeDataString(paymentMethod)}");
-
-        string endpoint = "Transaction";
-        if (queryParams.Count > 0)
-            endpoint += "/search?" + string.Join("&", queryParams);
-
-        using (var response = await httpClient.GetAsync(APIEndPoint + endpoint))
-        {
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<List<Transaction>>(content);
-
-                if (result != null)
-                {
-                    return View(result);
-                }
-            }
-        }
-    }
-
-    return View(new List<Transaction>());
-}
-4) them vào layout
-<li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Transactions" asp-action="Index">Transaction</a>
-                        </li>
-
-//đổi endpoint https://localhost:7273/api================ //!important
-// we can stop here
 //-----------VALIDATION--------
 #region Required Attributes
 

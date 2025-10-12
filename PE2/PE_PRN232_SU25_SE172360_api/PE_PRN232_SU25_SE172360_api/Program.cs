@@ -32,10 +32,10 @@ builder.Services.AddControllers().AddOData(options =>
 builder.Services.AddSwaggerGen();
 
 //DbContext
-builder.Services.AddDbContext<Spring2025productinventorydbContext>();
+//builder.Services.AddDbContext<Spring2025productinventorydbContext>();
 
 //DI
-builder.Services.AddScoped<ISystemAccountService, SystemAccountService>();
+builder.Services.AddScoped<IAuthenService, AuthenService>();
 //builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingService>();
 //builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
 //builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();

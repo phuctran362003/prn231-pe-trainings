@@ -6,9 +6,9 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
 {
     public class SystemAccountController : ControllerBase
     {
-        private readonly ISystemAccountService _service;
+        private readonly IAuthenService _service;
 
-        public SystemAccountController(ISystemAccountService service)
+        public SystemAccountController(IAuthenService service)
         {
             _service = service;
         }
