@@ -6,6 +6,7 @@ namespace Repository
     public class ProductRepo : DataAccessObject<Product>
     {
         public ProductRepo()
+            : base(new Spring2025productinventorydbContext())
         {
         }
 

@@ -5,9 +5,9 @@ using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using Repository.Entities;
-using Service;
+using Service.Interfaces;
+using Service.Services;
 using System.Text;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,20 +31,15 @@ builder.Services.AddControllers().AddOData(options =>
 
 builder.Services.AddSwaggerGen();
 
-//DbContext
-//builder.Services.AddDbContext<Spring2025productinventorydbContext>();
-
 //DI
 builder.Services.AddScoped<IAuthenService, AuthenService>();
-//builder.Services.AddScoped<IWatercolorsPaintingService, WatercolorsPaintingService>();
-//builder.Services.AddValidatorsFromAssemblyContaining<WatercolorsPaintingValidator>();
-//builder.Services.AddScoped<IValidator<WatercolorsPainting>, WatercolorsPaintingValidator>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 //
-builder.Services.AddControllers().AddJsonOptions(option =>
+builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    option.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    option.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
+    options.JsonSerializerOptions.ReferenceHandler =
+        System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

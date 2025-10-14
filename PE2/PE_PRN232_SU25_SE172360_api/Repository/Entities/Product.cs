@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Text.Json.Serialization;
 
 namespace Repository.Entities;
 
 public partial class Product
 {
+    [JsonIgnore]
     public int ProductId { get; set; }
 
     public int? CategoryId { get; set; }

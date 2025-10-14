@@ -2,11 +2,12 @@
 using Microsoft.IdentityModel.Tokens;
 using Repository;
 using Repository.Entities;
+using Service.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Service
+namespace Service.Services
 {
     public class AuthenService : IAuthenService
     {

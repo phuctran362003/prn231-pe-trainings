@@ -18,3 +18,12 @@ public class ErrorResult
         Message = message;
     }
 }
+
+public static class ErrorCodes
+{
+    public const string InvalidInput = "PR40001";
+    public const string AuthenticationError = "PR40101";
+    public const string NotAuthorized = "PR40301";
+    public const string NotFound = "PR40401";
+    public const string InternalServerError = "PR50001";
+}

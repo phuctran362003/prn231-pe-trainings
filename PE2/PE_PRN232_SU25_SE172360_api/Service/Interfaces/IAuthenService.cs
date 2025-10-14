@@ -1,11 +1,13 @@
 ﻿using Repository.Entities;
 
-namespace Service
+namespace Service.Interfaces
 {
     public interface IAuthenService
     {
         public Task<SystemAccount> Authenticate(string username, string password);
+
         string GenerateJSONWebToken(SystemAccount systemUserAccount);
+
         string GetRoleName(int? role);
     }
 
