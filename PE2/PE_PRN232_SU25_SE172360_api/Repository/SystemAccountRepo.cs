@@ -12,7 +12,7 @@ namespace Repository
 
         public async Task<SystemAccount> GetByEmailAndPassword(string email, string password)
         {
-            return await Context.SystemAccounts
+            return await _context.SystemAccounts
                 .FirstOrDefaultAsync(a => a.Username == email && a.Password == password && a.IsActive == true);
         }
     }

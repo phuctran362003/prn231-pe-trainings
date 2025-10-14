@@ -5,143 +5,143 @@ namespace Repository
 {
     public class DataAccessObject<T> where T : class
     {
-        protected Spring2025productinventorydbContext Context;
+        protected Spring2025productinventorydbContext _context;
 
         // Default constructor, initializes the DbContext if null
         public DataAccessObject()
         {
-            Context = new Spring2025productinventorydbContext();
+            _context = new Spring2025productinventorydbContext();
         }
 
         // Constructor that accepts a DbContext
         public DataAccessObject(Spring2025productinventorydbContext context)
         {
-            Context = context;
+            _context = context;
         }
 
         // Synchronous method to retrieve all entities
         public List<T> GetAll()
         {
-            return Context.Set<T>().ToList();
+            return _context.Set<T>().ToList();
         }
 
         // Asynchronous method to retrieve all entities
         public async Task<List<T>> GetAllAsync()
         {
-            return await Context.Set<T>().ToListAsync();
+            return await _context.Set<T>().ToListAsync();
         }
 
         // Synchronous method to create a new entity
         public void Create(T entity)
         {
-            Context.Add(entity);
-            Context.SaveChanges();
+            _context.Add(entity);
+            _context.SaveChanges();
         }
 
         // Asynchronous method to create a new entity
         public async Task<int> CreateAsync(T entity)
         {
-            Context.Add(entity);
-            return await Context.SaveChangesAsync();
+            _context.Add(entity);
+            return await _context.SaveChangesAsync();
         }
 
         // Synchronous method to update an entity
         public void Update(T entity)
         {
-            var tracker = Context.Attach(entity);
+            var tracker = _context.Attach(entity);
             tracker.State = EntityState.Modified;
-            Context.SaveChanges();
+            _context.SaveChanges();
         }
 
         // Asynchronous method to update an entity
         public async Task<int> UpdateAsync(T entity)
         {
-            var tracker = Context.Attach(entity);
+            var tracker = _context.Attach(entity);
             tracker.State = EntityState.Modified;
-            return await Context.SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
 
         // Synchronous method to remove an entity
         public bool Remove(T entity)
         {
-            Context.Remove(entity);
-            Context.SaveChanges();
+            _context.Remove(entity);
+            _context.SaveChanges();
             return true;
         }
 
         // Asynchronous method to remove an entity
         public async Task<bool> RemoveAsync(T entity)
         {
-            Context.Remove(entity);
-            await Context.SaveChangesAsync();
+            _context.Remove(entity);
+            await _context.SaveChangesAsync();
             return true;
         }
 
         // Retrieve entity by integer ID (synchronously)
         public T GetById(int id)
         {
-            return Context.Set<T>().Find(id);
+            return _context.Set<T>().Find(id);
         }
 
         // Retrieve entity by integer ID (asynchronously)
         public async Task<T> GetByIdAsync(int id)
         {
-            return await Context.Set<T>().FindAsync(id);
+            return await _context.Set<T>().FindAsync(id);
         }
 
         // Retrieve entity by string ID (synchronously)
         public T GetById(string code)
         {
-            return Context.Set<T>().Find(code);
+            return _context.Set<T>().Find(code);
         }
 
         // Retrieve entity by string ID (asynchronously)
         public async Task<T> GetByIdAsync(string code)
         {
-            return await Context.Set<T>().FindAsync(code);
+            return await _context.Set<T>().FindAsync(code);
         }
 
         // Retrieve entity by Guid (synchronously)
         public T GetById(Guid code)
         {
-            return Context.Set<T>().Find(code);
+            return _context.Set<T>().Find(code);
         }
 
         // Retrieve entity by Guid (asynchronously)
         public async Task<T> GetByIdAsync(Guid code)
         {
-            return await Context.Set<T>().FindAsync(code);
+            return await _context.Set<T>().FindAsync(code);
         }
 
         // Prepare an entity for creation (no save)
         public void PrepareCreate(T entity)
         {
-            Context.Add(entity);
+            _context.Add(entity);
         }
 
         // Prepare an entity for update (no save)
         public void PrepareUpdate(T entity)
         {
-            var tracker = Context.Attach(entity);
+            var tracker = _context.Attach(entity);
             tracker.State = EntityState.Modified;
         }
 
         // Prepare an entity for removal (no save)
         public void PrepareRemove(T entity)
         {
-            Context.Remove(entity);
+            _context.Remove(entity);
         }
 
         // Save changes synchronously
         public int Save()
         {
-            return Context.SaveChanges();
+            return _context.SaveChanges();
         }
 
         // Save changes asynchronously
         public async Task<int> SaveAsync()
         {
-            return await Context.SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
     }
 }
