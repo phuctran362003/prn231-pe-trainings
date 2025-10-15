@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using Repository.Entities;
+using Service.Common;
 using Service.Interfaces;
 
 namespace PE_PRN232_SU25_SE172360_api.Controllers
@@ -17,26 +17,65 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             _service = service;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "1,2,3")]
+        [HttpGet()]
         [EnableQuery]
-        public async Task<IEnumerable<Product>> Get()
+        [Authorize(Roles = "1,2,3")]
+        public async Task<IActionResult> Get()
         {
-            return await _service.GetAll();
+            try
+            {
+                var result = await _service.GetAll();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorResult("HB50001", "Internal server error");
+                return StatusCode(500, error);
+            }
         }
 
         [HttpGet("{id}")]
         [Authorize(Roles = "1,2,3")]
-        public async Task<Product> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return await _service.GetById(id);
+            try
+            {
+                var infor = await _service.GetById(id);
+                if (infor == null)
+                {
+                    var error = new ErrorResult("HB40401", "Resource not found");
+                    return NotFound(error);
+                }
+
+                return Ok(infor);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorResult("HB50001", $"Internal server error: {ex.Message}");
+                return StatusCode(500, error);
+            }
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "1,2")]
-        public async Task<bool> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            return await _service.Delete(id);
+            try
+            {
+                var deleted = await _service.Delete(id);
+                if (deleted == null)
+                {
+                    var error = new ErrorResult("HB40401", "Resource not found");
+                    return NotFound(error);
+                }
+
+                return Ok(deleted);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorResult("HB50001", "Internal server error");
+                return StatusCode(500, error);
+            }
         }
 
         //[HttpGet("search")]
