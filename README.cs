@@ -1,7 +1,9 @@
 #region SETUP_PACKAGES
 
 // Repository
+using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 dotnet add package Microsoft.EntityFrameworkCore --version 8.0.5
@@ -16,7 +18,6 @@ dotnet add package Microsoft.AspNetCore.OData --version 8.2.5
 
 // Service
 dotnet add package FluentValidation.AspNetCore --version 8.5.1
-
 
 // install offline (Mở file csproj của Repo rồi paste content của tag <ItemGroup> </ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.2.0" />
@@ -40,7 +41,7 @@ dotnet add package FluentValidation.AspNetCore --version 8.5.1
 //DATABASE SCAFFOLD ( tự đổi tên server + database của đề)
 dotnet ef dbcontext scaffold "Server=103.211.201.141,1433; Database=spring2025productinventorydb; User Id=sa; Password=YourStrong!Passw0rd; TrustServerCertificate=True; Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer --output-dir Entities
 
-//BỎ ĐỐNG NÀY VÀO DBCONTEXT 
+//BỎ ĐỐNG NÀY VÀO DBCONTEXT
 public static string GetConnectionString(string connectionStringName)
 {
     var config = new ConfigurationBuilder()
@@ -54,7 +55,7 @@ public static string GetConnectionString(string connectionStringName)
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseSqlServer(GetConnectionString("DefaultConnection"));
 
-//// TRONG appsettings.json SETUP NHƯ SAU (miễn giống với scaffold là được): 
+//// TRONG appsettings.json SETUP NHƯ SAU (miễn giống với scaffold là được):
 
 {
     "Logging": {
@@ -442,7 +443,6 @@ public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
 {
     public WatercolorsPaintingRepo()
     {
-
     }
 
     public async Task<List<WatercolorsPainting>> GetAllAsync()
@@ -473,7 +473,7 @@ public class WatercolorsPaintingRepo : DataAccessObject<WatercolorsPainting>
 
 #endregion
 
-#region SAMPLE_ENTITY_SERVICE 
+#region SAMPLE_ENTITY_SERVICE
 #endregion
 
 #region
@@ -602,10 +602,8 @@ public class WatercolorsPaintingController : Controller
         return await _watercolorsPaintingService.GetAll();
     }
 
-
     [HttpGet("{id}")]
     [Authorize(Roles = "1,2")]
-
     public async Task<WatercolorsPainting> Get(string id)
     {
         return await _watercolorsPaintingService.GetById(id);
@@ -665,7 +663,6 @@ public class WatercolorsPaintingController : Controller
 [Required]
 [StringLength(max, MinimumLength = min)]
 [Range(min, max)]
-
 #endregion
 
 #region Basic Patterns
@@ -681,7 +678,6 @@ public class WatercolorsPaintingController : Controller
 
 // Numbers Only
 [RegularExpression(@"^\d+$", ErrorMessage = "Only numeric characters are allowed.")]
-
 #endregion
 
 #region Length Constraints
@@ -697,7 +693,6 @@ public class WatercolorsPaintingController : Controller
 
 // No Spaces, Min Length 6
 [RegularExpression(@"^\S{6,}$", ErrorMessage = "The input must be at least 6 characters long and must not contain spaces.")]
-
 #endregion
 
 #region Character Requirements
@@ -738,7 +733,6 @@ public class WatercolorsPaintingController : Controller
 
 // Positive or Negative Decimal Numbers
 [RegularExpression(@"^-?\d+(\.\d+)?$", ErrorMessage = "Only decimal numbers, positive or negative, are allowed.")]
-
 #endregion
 
 #region Format-Specific Patterns
@@ -773,14 +767,4 @@ public class WatercolorsPaintingController : Controller
 
 // Date Range
 [Range(typeof(DateTime), "01/01/2020", "01/01/2030", ErrorMessage = "Date must be between 2020 and 2030.")]
-
 #endregion
-
-
-
-
-
-
-
-
-
