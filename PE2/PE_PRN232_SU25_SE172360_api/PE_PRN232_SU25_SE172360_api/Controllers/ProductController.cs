@@ -29,7 +29,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
             catch (Exception ex)
             {
-                var error = new ErrorResult("HB50001", "Internal server error");
+                var error = new ErrorResult("PR50001", "Internal server error");
                 return StatusCode(500, error);
             }
         }
@@ -43,7 +43,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
                 var infor = await _service.GetById(id);
                 if (infor == null)
                 {
-                    var error = new ErrorResult("HB40401", "Resource not found");
+                    var error = new ErrorResult("PR40401", "Resource not found");
                     return NotFound(error);
                 }
 
@@ -51,7 +51,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
             catch (Exception ex)
             {
-                var error = new ErrorResult("HB50001", $"Internal server error: {ex.Message}");
+                var error = new ErrorResult("PR50001", $"Internal server error: {ex.Message}");
                 return StatusCode(500, error);
             }
         }
@@ -65,7 +65,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
                 var deleted = await _service.Delete(id);
                 if (deleted == null)
                 {
-                    var error = new ErrorResult("HB40401", "Resource not found");
+                    var error = new ErrorResult("PR40401", "Resource not found");
                     return NotFound(error);
                 }
 
@@ -73,7 +73,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
             catch (Exception ex)
             {
-                var error = new ErrorResult("HB50001", "Internal server error");
+                var error = new ErrorResult("PR50001", "Internal server error");
                 return StatusCode(500, error);
             }
         }

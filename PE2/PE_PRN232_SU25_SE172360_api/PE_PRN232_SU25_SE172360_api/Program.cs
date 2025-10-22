@@ -11,10 +11,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-//JSON CYCLE
+#region OData Model
+
 static IEdmModel GetEdmModel()
 {
     var odataBuilder = new ODataConventionModelBuilder();
@@ -23,24 +21,34 @@ static IEdmModel GetEdmModel()
     return odataBuilder.GetEdmModel();
 }
 
-builder.Services.AddControllers().AddOData(options =>
-{
-    options.Select().Filter().OrderBy().Expand().SetMaxTop(null).Count();
-    options.AddRouteComponents("odata", GetEdmModel());
-});
+#endregion OData Model
 
-builder.Services.AddSwaggerGen();
+#region Services Configuration
 
-//DI
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    })
+    .AddOData(options =>
+    {
+        options.Select().Filter().OrderBy().Expand().SetMaxTop(null).Count();
+        options.AddRouteComponents("odata", GetEdmModel());
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+
+#endregion Services Configuration
+
+#region Dependency Injection
+
 builder.Services.AddScoped<IAuthenService, AuthenService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
-//
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler =
-        System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-});
+#endregion Dependency Injection
+
+#region Authentication
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -56,6 +64,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+
+#endregion Authentication
+
+#region Swagger Configuration
 
 builder.Services.AddSwaggerGen(option =>
 {
@@ -86,7 +98,12 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
+
+#endregion Swagger Configuration
+
 var app = builder.Build();
+
+#region Application Pipeline
 
 if (app.Environment.IsDevelopment())
 {
@@ -101,3 +118,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+#endregion Application Pipeline
