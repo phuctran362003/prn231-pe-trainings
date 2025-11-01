@@ -33,5 +33,10 @@ namespace Service.Services
             var item = _repo.GetById(id);
             return await _repo.RemoveAsync(item);
         }
+
+        public async Task<List<Product>> Search(string? name, int? categoryId)
+        {
+            return await _repo.SearchAsync(name, categoryId);
+        }
     }
 }

@@ -78,6 +78,22 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
         }
 
+        [HttpGet("search")]
+        [Authorize]
+        public async Task<IActionResult> Search([FromQuery] string? name, [FromQuery] int? categoryId)
+        {
+            try
+            {
+                var results = await _service.Search(name, categoryId);
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorResult("PR50001", $"Internal server error: {ex.Message}");
+                return StatusCode(500, error);
+            }
+        }
+
         //[HttpGet("search")]
         //[Authorize(Roles = "1,2")]
         //public async Task<IEnumerable<Product>> Get(string? author, int? date)

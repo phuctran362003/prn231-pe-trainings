@@ -11,5 +11,7 @@ namespace Service.Interfaces
         Task<int> Create(Product watercolorsPainting);
 
         Task<bool> Delete(int id);
+
+        Task<List<Product>> Search(string? name, int? categoryId);
     }
 }

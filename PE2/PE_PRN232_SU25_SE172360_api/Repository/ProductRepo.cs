@@ -25,5 +25,22 @@ namespace Repository
             }
             return item;
         }
+
+        public async Task<List<Product>> SearchAsync(string? name, int? categoryId)
+        {
+            var query = _context.Products.Include(i => i.Category).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(p => p.ProductName.Contains(name));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            return await query.OrderBy(p => p.CategoryId).ThenBy(p => p.ProductName).ToListAsync();
+        }
     }
 }
