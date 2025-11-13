@@ -78,7 +78,7 @@ namespace Repository
         }
 
         // Retrieve entity by integer ID (synchronously)
-        public T GetById(int id)
+        public T GetById(int? id)
         {
             return _context.Set<T>().Find(id);
         }

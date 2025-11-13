@@ -34,6 +34,23 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
         }
 
+        [HttpGet("search")]
+        [EnableQuery]
+        [Authorize(Roles = "1,2,3")]
+        public async Task<IActionResult> Search(string? name, int? categoryId)
+        {
+            try
+            {
+                var result = await _service.SearchAsync(name, categoryId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorResult("HB50001", "Internal server error");
+                return StatusCode(500, error);
+            }
+        }
+
         [HttpGet("{id}")]
         [Authorize(Roles = "1,2,3")]
         public async Task<IActionResult> Get(int id)
@@ -82,19 +99,53 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
         [Authorize(Roles = "1")]
         public async Task<IActionResult> Post(CreateProductDto dto)
         {
-            var result = await _service.CreateWithValidation(dto);
-            if (result != null)
+            try
             {
+                var result = await _service.CreateWithValidation(dto);
+
                 return Ok(new
                 {
                     Message = "Create successful",
                     Data = result
                 });
             }
-            return BadRequest(new
+            catch (Exception ex)
             {
-                Message = "Validation failed"
-            });
+                if (ex.Message.Contains("validation", StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(new ErrorResult("HB40001", ex.Message));
+                }
+
+                return StatusCode(500, new ErrorResult("HB50001", "Internal server error"));
+            }
         }
+
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "1")]
+        public async Task<IActionResult> Put(int id, UpdateProductDto dto)
+        {
+            try
+            {
+                dto.ProductId = id;
+
+                var result = await _service.UpdateWithValidation(dto);
+
+                return Ok(new
+                {
+                    Message = "Update successful",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    return NotFound(new ErrorResult("HB40401", ex.Message));
+                }
+
+                return StatusCode(500, new ErrorResult("HB50001", ex.Message));
+            }
+        }
+
     }
 }

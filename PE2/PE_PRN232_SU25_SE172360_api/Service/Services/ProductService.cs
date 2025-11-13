@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Repository;
+﻿using Repository;
 using Repository.Entities;
 using Service.Interfaces;
 
@@ -8,32 +7,65 @@ namespace Service.Services
     public class ProductService : IProductService
     {
         private readonly ProductRepo _repo;
-        private readonly IValidator<Product> _validator;
 
-        public ProductService(IValidator<Product> validator)
+        public ProductService()
         {
             _repo = new ProductRepo();
-            _validator = validator;
         }
 
-        public async Task<Product?> CreateWithValidation(CreateProductDto dto)
+        public async Task<List<ProductDto>> SearchAsync(string? name, int? categoryId)
         {
-            var Product = MapToDto(dto);
+            var products = await _repo.SearchAsync(name, categoryId);
+            return products.Select(MapToDto).ToList();
+        }
 
-            var validationResult = await _validator.ValidateAsync(Product);
-            if (!validationResult.IsValid)
+        public async Task<ProductDto> CreateWithValidation(CreateProductDto dto)
+        {
+            var product = new Product
             {
-                return null;
-            }
+                ProductId = await GenerateNextIdAsync(),
+                ProductName = dto.ProductName,
+                CategoryId = dto.CategoryId,
+                Material = dto.Material,
+                Price = dto.Price,
+                Quantity = dto.Quantity,
+                ReleaseDate = DateOnly.FromDateTime(DateTime.Now)
+            };
 
-            Product.ProductId = await GenerateNextIdAsync();
+            var result = await _repo.CreateAsync(product);
 
-            var result = await _repo.CreateAsync(Product);
             if (result == 1)
             {
-                return Product;
+                return await GetById(product.ProductId);
             }
-            return null;
+
+            throw new Exception("Failed to create product.");
+        }
+
+        public async Task<ProductDto> UpdateWithValidation(UpdateProductDto dto)
+        {
+            var item = _repo.GetById(dto.ProductId);
+            if (item == null)
+            {
+                throw new Exception($"Product with ID {dto.ProductId} not found.");
+            }
+
+            // Update trực tiếp vào item EF đang track
+            item.ProductName = dto.ProductName;
+            item.CategoryId = dto.CategoryId;
+            item.Material = dto.Material;
+            item.Price = dto.Price;
+            item.Quantity = dto.Quantity;
+            item.ReleaseDate = dto.ReleaseDate;
+
+            var result = await _repo.UpdateAsync(item);
+
+            if (result == 1)
+            {
+                return await GetById(item.ProductId);
+            }
+
+            throw new Exception("Update failed due to unknown reasons.");
         }
 
         public async Task<bool> Delete(int id)
@@ -42,14 +74,19 @@ namespace Service.Services
             return await _repo.RemoveAsync(item);
         }
 
-        public async Task<List<Product>> GetAll()
+        public async Task<List<ProductDto>> GetAll()
         {
-            return await _repo.GetAllAsync();
+            var products = await _repo.GetAllAsync();
+            return products
+                .OrderByDescending(p => p.ReleaseDate)
+                .Select(MapToDto)
+                .ToList();
         }
 
-        public async Task<Product> GetById(int id)
+        public async Task<ProductDto> GetById(int id)
         {
-            return await _repo.GetByIdAsync(id);
+            var product = await _repo.GetByIdAsync(id);
+            return MapToDto(product);
         }
 
         private async Task<int> GenerateNextIdAsync()
@@ -62,17 +99,20 @@ namespace Service.Services
             return allProducts.Max(h => h.ProductId) + 1;
         }
 
-        private Product MapToDto(CreateProductDto dto)
+        private ProductDto MapToDto(Product product)
         {
-            return new Product
+            return new ProductDto
             {
-                ProductName = dto.ProductName,
-                CategoryId = dto.CategoryId,
-                Material = dto.Material,
-                Price = dto.Price,
-                Quantity = dto.Quantity,
-                ReleaseDate = dto.ReleaseDate
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
+                CategoryId = product.CategoryId,
+                Material = product.Material,
+                Price = product.Price,
+                Quantity = product.Quantity,
+                ReleaseDate = product.ReleaseDate
             };
         }
+
+
     }
 }
