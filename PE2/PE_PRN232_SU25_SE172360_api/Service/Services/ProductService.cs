@@ -10,43 +10,36 @@ namespace Service.Services
         private readonly ProductRepo _repo;
         private readonly IValidator<Product> _validator;
 
-        //public Task<int> Create(Product Product)
-        //{
-        //    Product.ReleaseDate = DateTime.UtcNow;
-        //    return _repo.CreateAsync(Product);
-        //}
-
-        //public async Task<string> CreateWithValidation(Product Product)
-        //{
-        //    // Kiểm tra dữ liệu với FluentValidation
-        //    var validationResult = await _validator.ValidateAsync(Product);
-        //    if (!validationResult.IsValid)
-        //    {
-        //        return string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-        //    }
-
-        //    Product.ProductId = GenerateId();
-        //    var result = await _repo.CreateAsync(Product);
-        //    if (result == 1)
-        //    {
-        //        return "Thêm Thành công";
-        //    }
-        //    return "Thêm thất bại";
-        //}
-
-        public string GenerateId()
-        {
-            return "WP" + DateTime.UtcNow.ToString("yyyyMMddHHmmss").Substring(0, 3) + Guid.NewGuid().ToString("N").Substring(0, 3);
-        }
-
-        public ProductService()
+        public ProductService(IValidator<Product> validator)
         {
             _repo = new ProductRepo();
+            _validator = validator;
         }
 
-        public Task<int> Create(Product item)
+        public async Task<Product?> CreateWithValidation(CreateProductDto dto)
         {
-            return _repo.CreateAsync(item);
+            var Product = MapToDto(dto);
+
+            var validationResult = await _validator.ValidateAsync(Product);
+            if (!validationResult.IsValid)
+            {
+                return null;
+            }
+
+            Product.ProductId = await GenerateNextIdAsync();
+
+            var result = await _repo.CreateAsync(Product);
+            if (result == 1)
+            {
+                return Product;
+            }
+            return null;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var item = _repo.GetById(id);
+            return await _repo.RemoveAsync(item);
         }
 
         public async Task<List<Product>> GetAll()
@@ -59,15 +52,27 @@ namespace Service.Services
             return await _repo.GetByIdAsync(id);
         }
 
-        public async Task<bool> Delete(int id)
+        private async Task<int> GenerateNextIdAsync()
         {
-            var item = _repo.GetById(id);
-            return await _repo.RemoveAsync(item);
+            var allProducts = await _repo.GetAllAsync();
+            if (allProducts == null || allProducts.Count == 0)
+            {
+                return 1;
+            }
+            return allProducts.Max(h => h.ProductId) + 1;
         }
 
-        public async Task<List<Product>> Search(string? name, int? categoryId)
+        private Product MapToDto(CreateProductDto dto)
         {
-            return await _repo.SearchAsync(name, categoryId);
+            return new Product
+            {
+                ProductName = dto.ProductName,
+                CategoryId = dto.CategoryId,
+                Material = dto.Material,
+                Price = dto.Price,
+                Quantity = dto.Quantity,
+                ReleaseDate = dto.ReleaseDate
+            };
         }
     }
 }

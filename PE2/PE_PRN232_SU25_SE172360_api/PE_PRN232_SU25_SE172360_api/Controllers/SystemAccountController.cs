@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Repository.Entities;
 using Service.Interfaces;
 
 namespace PE_PRN232_SU25_SE172360_api.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class SystemAccountController : ControllerBase
     {
         private readonly IAuthenService _service;

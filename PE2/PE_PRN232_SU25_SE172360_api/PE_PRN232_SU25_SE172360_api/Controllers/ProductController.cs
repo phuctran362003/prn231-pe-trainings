@@ -29,7 +29,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
             catch (Exception ex)
             {
-                var error = new ErrorResult("PR50001", "Internal server error");
+                var error = new ErrorResult("HB50001", "Internal server error");
                 return StatusCode(500, error);
             }
         }
@@ -43,7 +43,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
                 var infor = await _service.GetById(id);
                 if (infor == null)
                 {
-                    var error = new ErrorResult("PR40401", "Resource not found");
+                    var error = new ErrorResult("HB40401", "Resource not found");
                     return NotFound(error);
                 }
 
@@ -51,7 +51,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
             catch (Exception ex)
             {
-                var error = new ErrorResult("PR50001", $"Internal server error: {ex.Message}");
+                var error = new ErrorResult("HB50001", $"Internal server error: {ex.Message}");
                 return StatusCode(500, error);
             }
         }
@@ -65,7 +65,7 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
                 var deleted = await _service.Delete(id);
                 if (deleted == null)
                 {
-                    var error = new ErrorResult("PR40401", "Resource not found");
+                    var error = new ErrorResult("HB40401", "Resource not found");
                     return NotFound(error);
                 }
 
@@ -73,72 +73,28 @@ namespace PE_PRN232_SU25_SE172360_api.Controllers
             }
             catch (Exception ex)
             {
-                var error = new ErrorResult("PR50001", "Internal server error");
+                var error = new ErrorResult("HB50001", "Internal server error");
                 return StatusCode(500, error);
             }
         }
 
-        [HttpGet("search")]
-        [Authorize]
-        public async Task<IActionResult> Search([FromQuery] string? name, [FromQuery] int? categoryId)
+        [HttpPost]
+        [Authorize(Roles = "1")]
+        public async Task<IActionResult> Post(CreateProductDto dto)
         {
-            try
+            var result = await _service.CreateWithValidation(dto);
+            if (result != null)
             {
-                var results = await _service.Search(name, categoryId);
-                return Ok(results);
+                return Ok(new
+                {
+                    Message = "Create successful",
+                    Data = result
+                });
             }
-            catch (Exception ex)
+            return BadRequest(new
             {
-                var error = new ErrorResult("PR50001", $"Internal server error: {ex.Message}");
-                return StatusCode(500, error);
-            }
+                Message = "Validation failed"
+            });
         }
-
-        //[HttpGet("search")]
-        //[Authorize(Roles = "1,2")]
-        //public async Task<IEnumerable<Product>> Get(string? author, int? date)
-        //{
-        //    return await _service.Search(date, author);
-        //}
-        //[HttpPost]
-
-        //[Authorize(Roles = "1")]
-        //public async Task<IActionResult> Post(Product transaction)
-        //{
-        //    var result = await _service.CreateWithValidation(transaction);
-        //    if (result.Contains("Thêm Thành công"))
-        //    {
-        //        return Ok(new
-        //        {
-        //            Message = "Create successful",
-        //            Data = result
-        //        });
-        //    }
-        //    return BadRequest(new
-        //    {
-        //        Message = "Validation failed",
-        //        Errors = result
-        //    });
-        //}
-
-        //[HttpPut()]
-        //[Authorize(Roles = "1")]
-        //public async Task<IActionResult> Put(Product Product)
-        //{
-        //    var result = await _service.UpdateWithValidation(transaction);
-        //    if (result.Contains("Edit thành công"))
-        //    {
-        //        return Ok(new
-        //        {
-        //            Message = "Edit successful",
-        //            Data = result
-        //        });
-        //    }
-        //    return BadRequest(new
-        //    {
-        //        Message = "Validation failed",
-        //        Errors = result
-        //    });
-        //}
     }
 }
