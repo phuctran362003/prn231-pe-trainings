@@ -31,7 +31,9 @@ public partial class Spring2025productinventorydbContext : DbContext
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer(GetConnectionString("DefaultConnection"));
+    {
+        optionsBuilder.UseSqlServer(GetConnectionString("DefaultConnection"));
+    }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

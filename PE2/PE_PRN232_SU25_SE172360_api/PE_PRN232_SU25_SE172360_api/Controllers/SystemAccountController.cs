@@ -1,36 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 
-namespace PE_PRN232_SU25_SE172360_api.Controllers
+namespace PE_PRN232_SU25_SE172360_api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class SystemAccountController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SystemAccountController : ControllerBase
+    private readonly IAuthenService _service;
+
+    public SystemAccountController(IAuthenService service)
     {
-        private readonly IAuthenService _service;
+        _service = service;
+    }
 
-        public SystemAccountController(IAuthenService service)
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _service.Authenticate(request.UserName, request.Password);
+
+        if (user == null)
+            return Unauthorized();
+
+        var token = _service.GenerateJSONWebToken(user);
+
+        var response = new LoginResponse
         {
-            _service = service;
-        }
+            Token = token,
+            RoleName = _service.GetRoleName(user.Role)
+        };
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
-        {
-            var user = await _service.Authenticate(request.UserName, request.Password);
-
-            if (user == null)
-                return Unauthorized();
-
-            var token = _service.GenerateJSONWebToken(user);
-
-            var response = new LoginResponse
-            {
-                Token = token,
-                RoleName = _service.GetRoleName(user.Role)
-            };
-
-            return Ok(response);
-        }
+        return Ok(response);
     }
 }

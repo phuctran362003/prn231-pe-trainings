@@ -2,10 +2,9 @@
 
 namespace Repository.Entities;
 
-public partial class Product
+public class Product
 {
-    [JsonIgnore]
-    public int ProductId { get; set; }
+    [JsonIgnore] public int ProductId { get; set; }
 
     public int? CategoryId { get; set; }
 

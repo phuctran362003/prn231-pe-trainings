@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
@@ -7,7 +9,6 @@ using Microsoft.OpenApi.Models;
 using Repository.Entities;
 using Service.Interfaces;
 using Service.Services;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler =
-            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            ReferenceHandler.IgnoreCycles;
     })
     .AddOData(options =>
     {
@@ -90,11 +91,11 @@ builder.Services.AddSwaggerGen(option =>
             {
                 Reference = new OpenApiReference
                 {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Bearer"
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
             },
-            new string[]{}
+            new string[] { }
         }
     });
 });
